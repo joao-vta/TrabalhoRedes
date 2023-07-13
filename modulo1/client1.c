@@ -5,11 +5,17 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <signal.h>
 
 #define MAX_MSG_SIZE 16
 #define SERVER_IP "127.0.0.1"
 #define PORT 5002
 #define READLINE_BUFFER 4096
+
+static volatile int  keepRunning = 1;
+void intHandler(int dummy) {
+    keepRunning = 0;
+}
 
 char *readline(FILE *stream) {
     char *string = 0;
@@ -33,6 +39,8 @@ int min(int a, int b) {
 }
 
 int main() {
+    signal(SIGINT, intHandler);
+
     int clientSocket;
     struct sockaddr_in serverAddress;
     char message[MAX_MSG_SIZE];
@@ -59,7 +67,7 @@ int main() {
     }
 
     // Send and receive messages
-    while (1) {
+    while (keepRunning) {
         printf("Enter a message: ");
         char* input_msg = readline(stdin);
 
@@ -86,8 +94,10 @@ int main() {
         printf("Received reply: %s\n", message);
     }
 
+
     // Close the socket
     close(clientSocket);
+    printf("All done :)\n");
 
     return 0;
 }

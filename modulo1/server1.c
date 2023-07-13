@@ -9,13 +9,12 @@
 #define PORT 5002
 
 static volatile int  keepRunning = 1;
-
-void sigHandler(){
+void intHandler(int dummy) {
     keepRunning = 0;
 }
 
 int main() {
-    signal(SIGINT, sigHandler);
+    signal(SIGINT, intHandler);
 
     int serverSocket, newSocket;
     struct sockaddr_in serverAddress, clientAddress;
@@ -76,11 +75,11 @@ int main() {
         }
     }
 
-    printf("PENIS PENIS PENIS \n");
-
     // Close the sockets
     close(newSocket);
     close(serverSocket);
+
+    printf("All done :)\n");
 
     return 0;
 }
