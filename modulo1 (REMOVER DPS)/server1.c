@@ -6,15 +6,15 @@
 #include <signal.h>
 
 #define MAX_MSG_SIZE 16
-#define PORT 5002
+#define PORT 5001
 
 static volatile int  keepRunning = 1;
-void intHandler(int dummy) {
+void exitHandler(int dummy) {
     keepRunning = 0;
 }
 
 int main() {
-    signal(SIGINT, intHandler);
+    signal(SIGINT, exitHandler);
 
     int serverSocket, newSocket;
     struct sockaddr_in serverAddress, clientAddress;

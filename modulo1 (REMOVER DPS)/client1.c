@@ -9,11 +9,12 @@
 
 #define MAX_MSG_SIZE 16
 #define SERVER_IP "127.0.0.1"
-#define PORT 5002
+#define PORT 5001
 #define READLINE_BUFFER 4096
 
 static volatile int  keepRunning = 1;
-void intHandler(int dummy) {
+// Handles the CTRL+C signal
+void exitHandler(int dummy) {
     keepRunning = 0;
 }
 
@@ -39,7 +40,7 @@ int min(int a, int b) {
 }
 
 int main() {
-    signal(SIGINT, intHandler);
+    signal(SIGINT, exitHandler);
 
     int clientSocket;
     struct sockaddr_in serverAddress;
@@ -73,6 +74,7 @@ int main() {
 
         int sent = 0;
         int messageSize = strlen(input_msg);
+        // Fragmenting so that message never exceedes the MAX_MSG_SIZE
         while (sent < messageSize) {
             int sendSize = min(messageSize - sent, MAX_MSG_SIZE);
             
@@ -83,6 +85,7 @@ int main() {
             }
 
             sent += sendSize;
+            // We do this to guarantee that the packet will be fragmented
             sleep(1);
         }
 
