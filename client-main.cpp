@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define SERVER_PORT 5001
+#define SERVER_PORT 5002
 #define SERVER_IP "127.0.0.1"
 
 #define MAX_MSG_SIZE 16
@@ -39,32 +39,17 @@ int main(){
     
     // receive and send messages
     bool running = true;
-    char input_msg[MAX_MSG_SIZE+1];
+    std::string input_msg;
     char message[MAX_MSG_SIZE+1];
     while(running){
         printf("Enter a message: ");
-        std::cin.getline(input_msg, sizeof(input_msg));
+        std::getline(std::cin, input_msg);
 
         // we need inputSize+1 so the message sent includes '\0'
-        int inputSize = strlen(input_msg);
-        //int sent = 0;
-        // // Fragmenting so that message never exceedes the MAX_MSG_SIZE
-        // while (sent < messageSize) {
-        //     int sendSize = min(messageSize - sent, MAX_MSG_SIZE);
-
-        //     printf("Bytes Sent: %d\n", sendSize);
-        //     if (send(clientSocket, input_msg + sent, sendSize, 0) < 0) {
-        //         perror("Failed to send message");
-        //         exit(1);
-        //     }
-
-        //     sent += sendSize;
-        //     // We do this to guarantee that the packet will be fragmented
-        //     sleep(1);
-        // }
-
-        // sending message and veryfing
-        if(send(clientSocket, input_msg, inputSize+1, 0) < 0){
+        int inputSize = input_msg.size()+1;
+        
+        // TCP automatically fragments depending if our input_msg is greater than inputSize
+        if(send(clientSocket, input_msg.c_str(), inputSize, 0) < 0){
             printf("Failed to send message!\n");
             exit(1);
         }
@@ -77,7 +62,7 @@ int main(){
         }
         printf("Received reply: %s\n", message);
 
-        if(strcmp(input_msg, "exit") == 0){
+        if(strcmp(input_msg.c_str(), "exit") == 0){
             running = false;
         }
     }

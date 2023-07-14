@@ -4,7 +4,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#define PORT 5001
+#define PORT 5002
 #define QUEUE_SIZE 5
 #define MAX_MSG_SIZE 16
 
@@ -54,13 +54,11 @@ int main(){
 
         // receiving message from client
         int received_bytes = recv(newSocket, message, MAX_MSG_SIZE, 0);
-        printf("Received message: %s (%i bytes)\n", message, received_bytes);
         if(received_bytes < 0){
             printf("Failed to receive message!\n");
             exit(1);
         }
-
-        // adding '\0' to the end of the message to print it
+        printf("Received message: %s (%i bytes)\n", message, received_bytes);
 
         // sending a reply message
         char reply[] = "Server reply";
