@@ -48,7 +48,7 @@ int main(){
         // we need inputSize+1 so the message sent includes '\0'
         int inputSize = input_msg.size()+1;
         
-        // TCP automatically fragments depending if our input_msg is greater than inputSize
+        // TCP automatically fragments depending if our input_msg is greater than MAX_MSG_SIZE
         if(send(clientSocket, input_msg.c_str(), inputSize, 0) < 0){
             printf("Failed to send message!\n");
             exit(1);
