@@ -86,8 +86,8 @@
 
 // #include <stdio.h>
 // #include <stdlib.h>
-// #include <string.h>
 // #include <signal.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <iostream>
@@ -95,6 +95,7 @@
 
 #define PORT 5001
 #define QUEUE_SIZE 5
+#define MAX_MSG_SIZE 16
 
 int main(){
     // creating socket and verifying
@@ -133,8 +134,41 @@ int main(){
     }
     printf("Connection with client stabilished.\n");
 
+    // receive and send messages
+    bool running = true;
+    char message[MAX_MSG_SIZE+1];
+    while(running){
+        // reseting message to receive new one
+        memset(message, 0, sizeof(message));
+
+        // receiving message from client
+        int received_bytes = recv(newSocket, message, MAX_MSG_SIZE, 0);
+        if(received_bytes < 0){
+            printf("Failed to receive message!\n");
+            exit(1);
+        }
+
+        // adding '\0' to the end of the message to print it
+        message[received_bytes] = '\0';
+        printf("Received message: %s (%i bytes)\n", message, received_bytes);
+
+        // sending a reply message
+        char reply[] = "Server reply";
+        if(send(newSocket, reply, strlen(reply), 0) < 0){
+            printf("Failed to send reply!\n");
+            exit(1);
+        }
+
+        // exiting if client exit
+        if(strcmp(message, "exit")){
+            running = false;
+        }
+    }
+
     printf("Server connection closed.\n");
+    // closing server and client socket
     close(serverSocket);
+    close(newSocket);
 
     return 0;
 }
