@@ -8,7 +8,7 @@
 #include <vector>
 #include <arpa/inet.h>
 
-#define SERVER_PORT 5002
+#define SERVER_PORT 5001
 #define SERVER_IP "127.0.0.1"
 
 #define MAX_MSG_SIZE 16

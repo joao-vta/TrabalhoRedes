@@ -20,6 +20,9 @@ std::atomic<int> n_clients_gl{0};
 // checks if the server should keep running or not
 std::atomic<bool> keepRunning{true};
 
+// creates a vector of sockets
+std::vector<int> v_sockets;
+
 void signal_callback_handler(int signum) {
     printf("\nTo exit, type '.exit' in the terminal\n");
 }
@@ -55,6 +58,7 @@ void connect_to_client(int serverSocket){
         exit(0);
     }
     printf("Connection with client stabilished.\n");
+    v_sockets.push_back(newSocket);
     
     // receive and send messages
     bool running = true;
@@ -71,12 +75,22 @@ void connect_to_client(int serverSocket){
         }
         printf("Received message: %s (%i bytes)\n", message, received_bytes);
 
+        /*
         // sending a reply message
         char reply[] = "Server reply";
         if(send(newSocket, reply, strlen(reply)+1, 0) < 0){
             printf("Failed to send reply!\n");
             exit(1);
         }
+        */
+
+        for (int & socket : v_sockets){
+            if(send(socket, message, strlen(message)+1, 0) < 0){
+                printf("Failed to send message!\n");
+                exit(1);
+            }
+        }
+
 
         // exiting if client exit
         if(strcmp(message, "exit") == 0){
