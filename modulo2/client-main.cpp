@@ -11,7 +11,7 @@
 #define SERVER_PORT 5001
 #define SERVER_IP "127.0.0.1"
 
-#define MAX_MSG_SIZE 16
+#define MAX_MSG_SIZE 4096
 
 int running = true;
 
@@ -52,7 +52,7 @@ void receive_message(){
     while(running){
         // receiving reply from server
         memset(message, 0, sizeof(message));
-        int server_reply = recv(clientSocket, message, sizeof(message), 0);
+        int server_reply = recv(clientSocket, message, sizeof(message)-1, 0);
         if (server_reply <= 0) {
             if (server_reply == 0) raise(SIGPIPE);
             printf("Failed to receive reply");
