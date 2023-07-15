@@ -26,18 +26,15 @@ void serverClientCommunication(int index){
         memset(message, 0, sizeof(message));
 
         // receiving message from client
-        if(server._receive(currConnection, message) < 0){
-            // this only happens if the receive was invalid
-            break;
-        }
-
-        // killing thread if client disconnects
-        if(strcmp(message, "exit") == 0){
+        int messageLength = server._receive(currConnection, message) < 0;
+        // killing thread if client disconnects or any error happens while
+        if(messageLength || strcmp(message, "exit") == 0 || strlen(message) == 0){
             string exit_message = "Client " + to_string(currConnection.index) + " disconnected.";
             strcpy(message, exit_message.c_str());
             clientOnline = false;
             server.disconnectClient(currConnection.index);
         }
+
         //sending message
         server._send(message);
     }

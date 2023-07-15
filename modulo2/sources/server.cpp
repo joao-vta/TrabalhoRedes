@@ -72,8 +72,17 @@ int Server::_receive(Connection currConnection, char *message){
 void Server::_send(char *message){
     for (Connection &connection : this->clientConnections){
         if(connection.index != DISCONNECTED){
-            if(send(connection.SOCKET, message, strlen(message)+1, 0) < 0){
-                printf("Failed to send message to client %d!\n", connection.index);
+            int attempt;
+            for(attempt = 0; attempt < 5; attempt++){
+                if(send(connection.SOCKET, message, strlen(message)+1, 0) < 0){
+                    printf("Failed to send message to client %d (try %d)!\n", connection.index, attempt+1);
+                }
+                else{
+                    break;
+                }
+            }
+            if(attempt > 4){
+                disconnectClient(connection.index);
             }
         }
     }
