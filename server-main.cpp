@@ -6,6 +6,8 @@
 #include <vector>
 #include <atomic>
 #include <unistd.h>
+#include <csignal>
+#include <fcntl.h>
 
 #define PORT 5002
 #define QUEUE_SIZE 1
@@ -15,8 +17,28 @@
 // amount of clients at time
 std::atomic<int> n_clients_gl{0};
 
-void connect_to_client(int serverSocket){
+// checks if the server should keep running or not
+std::atomic<bool> keepRunning{true};
 
+void signal_callback_handler(int signum) {
+    printf("\nTo exit, type '.exit' in the terminal\n");
+}
+
+void server_input(){
+    std::string input;
+
+    while(keepRunning){
+        std::getline(std::cin, input);
+        printf("Server Command: %s\n", input.c_str());
+        if(input.compare(".exit") == 0){
+            keepRunning = false;
+        }
+    }
+
+    return;
+}
+
+void connect_to_client(int serverSocket){
     // listen for QUEUE_SIZE connections
     if(listen(serverSocket, QUEUE_SIZE) != 0){
         printf("Error while trying to listen!\n");
@@ -33,9 +55,6 @@ void connect_to_client(int serverSocket){
         exit(0);
     }
     printf("Connection with client stabilished.\n");
-    
-    // amount of clients is incremented
-    n_clients_gl++;
     
     // receive and send messages
     bool running = true;
@@ -67,7 +86,6 @@ void connect_to_client(int serverSocket){
 
     printf("Server connection closed.\n");
     // closing server and client socket
-    close(serverSocket);
     close(newSocket);
 
     // amount of clients is decremented
@@ -78,6 +96,9 @@ void connect_to_client(int serverSocket){
 }
 
 int main(){
+    std::signal(SIGINT, signal_callback_handler);
+    // thread that handles input in server terminal
+    std::thread input_thr(server_input);
 
     // creating socket and verifying
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -97,24 +118,27 @@ int main(){
         printf("Socket bind failed!\n");
         exit(1);
     }
-     
-    // creates a vector of threads
-    std::vector<std::thread> v_threads;
 
     /* TODO:
      * PROBLEMAS:
      *  um número fixo de clientes. 
      *  quando uma conexão é fechada, não se libera espaço para mais um cliente
     */
-    int i = MAX_CLIENTS;
-    do{ 
-        std::thread th(connect_to_client, serverSocket);
-        v_threads.push_back(std::move(th));
-    }while(i--);
-
-    for (std::thread & th : v_threads){
-        th.join(); 
+    // creates a vector of threads
+    std::vector<std::thread> v_threads;
+    while(keepRunning){
+        for(int i = n_clients_gl; i < MAX_CLIENTS; i++){
+            std::thread th(connect_to_client, serverSocket);
+            th.detach();
+            // amount of clients is incremented
+            n_clients_gl++;
+            v_threads.push_back(std::move(th));
+        }
     }
 
+    input_thr.join();
+    printf("Closing server socket.\n");
+    close(serverSocket);
+    
     return 0;
 }

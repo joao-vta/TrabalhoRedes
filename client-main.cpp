@@ -8,7 +8,7 @@
 #include <vector>
 #include <arpa/inet.h>
 
-#define SERVER_PORT 5001
+#define SERVER_PORT 5002
 #define SERVER_IP "127.0.0.1"
 
 #define MAX_MSG_SIZE 16
@@ -47,8 +47,8 @@ void send_message(std::string input_msg){
     return;
 }
 
-void receive_message(char *message){
-
+void receive_message(){
+    char message[MAX_MSG_SIZE+1];
     while(running){
         // receiving reply from server
         memset(message, 0, sizeof(message));
@@ -96,14 +96,13 @@ int main(){
     printf("Connection with server stabilished\n");
     
     // receive and send messages
-    bool running = true;
+    //bool running = true;
     std::string input_msg;
-    char message[MAX_MSG_SIZE+1];
 
     std::vector<std::thread> v_threads;
 
     std::thread th_send(send_message, input_msg);
-    std::thread th_recv(receive_message, message);
+    std::thread th_recv(receive_message);
 
     /*
     while(running){
