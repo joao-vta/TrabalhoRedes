@@ -68,7 +68,6 @@ int main(){
     thread thrInput(serverInput);
     thread thrListen(serverListen);
     thrListen.detach();
-    
 
     thrInput.join();
     return 0;
