@@ -8,7 +8,7 @@
 #define SERVER_PORT 5002
 #define SERVER_IP "127.0.0.1"
 
-#define MAX_MSG_SIZE 16
+#define MAX_MSG_SIZE 4096
 
 int main(){
     // creating socket and verifying
