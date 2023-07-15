@@ -6,7 +6,7 @@
 
 #define PORT 5002
 #define QUEUE_SIZE 5
-#define MAX_MSG_SIZE 16
+#define MAX_MSG_SIZE 4096
 
 int main(){
     // creating socket and verifying
