@@ -9,7 +9,7 @@
 #include <csignal>
 #include <fcntl.h>
 
-#define PORT 5002
+#define PORT 5001
 #define QUEUE_SIZE 1
 #define MAX_MSG_SIZE 16
 #define MAX_CLIENTS 3
@@ -83,14 +83,14 @@ void connect_to_client(int serverSocket){
             exit(1);
         }
         */
-
-        for (int & socket : v_sockets){
-            if(send(socket, message, strlen(message)+1, 0) < 0){
-                printf("Failed to send message!\n");
-                exit(1);
+        if(strcmp(message, "exit") != 0){
+            for (int & socket : v_sockets){
+                if(send(socket, message, strlen(message)+1, 0) < 0){
+                    printf("Failed to send message!\n");
+                    exit(1);
+                }
             }
         }
-
 
         // exiting if client exit
         if(strcmp(message, "exit") == 0){
