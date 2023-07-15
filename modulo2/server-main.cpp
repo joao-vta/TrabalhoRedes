@@ -26,9 +26,9 @@ void serverClientCommunication(int index){
         memset(message, 0, sizeof(message));
 
         // receiving message from client
-        int messageLength = server._receive(currConnection, message) < 0;
+        int validMessage = server._receive(currConnection, message) < 0;
         // killing thread if client disconnects or any error happens while
-        if(messageLength || strcmp(message, "exit") == 0 || strlen(message) == 0){
+        if(validMessage || strcmp(message, "exit") == 0 || strlen(message) == 0){
             string exit_message = "Client " + to_string(currConnection.index) + " disconnected.";
             strcpy(message, exit_message.c_str());
             clientOnline = false;
