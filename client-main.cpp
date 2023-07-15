@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string.h>
 #include <unistd.h>
+#include <csignal>
 #include <arpa/inet.h>
 
 #define SERVER_PORT 5002
@@ -10,13 +11,24 @@
 
 #define MAX_MSG_SIZE 16
 
+// creating socket and verifying
+int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+void sigpipe_handler(int err){
+    printf("Server disconnected. Closing client %d.\n", clientSocket);
+    close(clientSocket);
+    exit(1);
+}
+
 int main(){
-    // creating socket and verifying
-    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    signal(SIGPIPE, sigpipe_handler);
+
     if(clientSocket < 0){
         printf("Socket creation failed!\n");
         exit(1);
     }
+
     // there's no need to bind the socket to a port
     // the OS will automatically do it
 
@@ -56,7 +68,9 @@ int main(){
 
         // receiving reply from server
         memset(message, 0, sizeof(message));
-        if (recv(clientSocket, message, sizeof(message), 0) < 0) {
+        int server_reply = recv(clientSocket, message, sizeof(message), 0);
+        if (server_reply <= 0) {
+            if (server_reply == 0) raise(SIGPIPE);
             printf("Failed to receive reply");
             exit(1);
         }
