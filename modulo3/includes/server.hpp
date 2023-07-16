@@ -50,4 +50,5 @@ class Server {
 
         void disconnectClient(int index);
         void muteClient(int index);
+        void unmuteClient(int index);
 };

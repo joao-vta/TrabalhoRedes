@@ -35,6 +35,17 @@ void cmd_mute(Channel *currChann, char *nickname){
     return;
 }
 
+void cmd_unmute(Channel *currChann, char *nickname){
+    for (Connection &currConn : currChann->v_connections){
+        if (strcmp(currConn.nickname, nickname) == 0){
+            if (currConn.index != DISCONNECTED){
+                server.unmuteClient(currConn.index);
+            }
+        }
+    }
+    return;
+}
+
 void exitSignalHandler(int signum) {
     printf("\nTo exit, type '/quit' in the terminal\n");
 }
@@ -77,8 +88,9 @@ void serverClientCommunication(int index){
                 printf("mute\n");
                 cmd_mute(currChann, &message[6]);
             }
-            if (!strcmp(message, "/unmute")){
+            if (!strncmp(message, "/unmute", 7)){
                 printf("unmute\n");
+                cmd_unmute(currChann, &message[8]);
             }
             if (!strcmp(message, "/whois")){
                 printf("whois\n");

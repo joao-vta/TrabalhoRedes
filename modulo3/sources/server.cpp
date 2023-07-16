@@ -162,3 +162,14 @@ void Server::muteClient(int index){
     this->v_muted.push_back(this->clientConnections[index].nickname);
     return;
 }
+
+void Server::unmuteClient(int index){
+    printf("Entered\n");
+    this->v_muted.erase(remove(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname));
+    cout << "printing" << endl;
+    for(auto i : v_muted){
+        cout << "elem: " << i << endl;
+    }
+    return;
+}
+
