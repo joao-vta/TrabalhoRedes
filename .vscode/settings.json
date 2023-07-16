@@ -57,6 +57,7 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "__nullptr": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "__split_buffer": "cpp"
     }
 }

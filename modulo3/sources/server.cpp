@@ -1,5 +1,7 @@
 #include "../includes/server.hpp"
 
+#include <algorithm>
+
 Server::Server(int port, int max_msg_size){
     this->MAX_MSG_SIZE = max_msg_size;
     // initializing client index
@@ -58,14 +60,26 @@ int Server::_accept(){
     }
     currConn.index = CURR_CLIENT_INDEX++;
 
+    // receiving connection nickname
+    char nickname[50];
+    memset(nickname, 0, 50);
+    if (recv(currConn.SOCKET, nickname, 50, 0) < 0){
+        printf("Failed to receive channel name from client!\n");
+    }
+    else{
+        printf("Nickname = %s\n", nickname);
+    }
+    strcpy(currConn.nickname, nickname);
+
     // receiving channel name
     char channel_name[200];
-    if (recv(currConn.SOCKET, channel_name, this->MAX_MSG_SIZE, 0) < 0){
+    memset(channel_name, 0, 200);
+    if (recv(currConn.SOCKET, channel_name, 200, 0) < 0){
         printf("Failed to receive channel name from client!\n");
     }
     else{
         printf("channel = %s\n", channel_name);
-        printf("Connection with client %d stabilished.\n", currConn.index);
+        printf("Connection with client %s stabilished.\n", currConn.nickname);
     }
     strcpy(currConn.channel_name, channel_name);
 
@@ -73,6 +87,7 @@ int Server::_accept(){
     if (currChann == NULL){
         currChann = (Channel*) malloc(sizeof(Channel));
         strcpy(currChann->name, channel_name);
+        strcpy(currChann->admin_nickname, currConn.nickname);
     }
 
     currChann->v_connections.push_back(currConn);
@@ -132,9 +147,29 @@ void Server::_send(Connection srcConn, char *message){
         }
     }
 
-    //for (Connection &connection : this->clientConnections){
+    string srcNickname = srcConn.nickname;
+    if(find(v_muted.begin(), v_muted.end(), srcNickname) != v_muted.end()){
+        return;
+    }
+
     for (Connection &connection : currChann->v_connections){
         this->_reply(message, connection);
     }
     return;
 }
+
+void Server::muteClient(int index){
+    this->v_muted.push_back(this->clientConnections[index].nickname);
+    return;
+}
+
+void Server::unmuteClient(int index){
+    printf("Entered\n");
+    this->v_muted.erase(remove(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname));
+    cout << "printing" << endl;
+    for(auto i : v_muted){
+        cout << "elem: " << i << endl;
+    }
+    return;
+}
+

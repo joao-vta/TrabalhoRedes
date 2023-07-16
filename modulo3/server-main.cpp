@@ -1,4 +1,5 @@
 #include "includes/server.hpp"
+#include <atomic>
 
 using namespace std;
 
@@ -11,6 +12,39 @@ Server server(PORT, MAX_MSG_SIZE);
 vector<thread> clientThreads;
 volatile bool running = true;
 
+void cmd_kick(Channel* currChann, char *nickname){
+
+    for (Connection &currConn : currChann->v_connections){
+        if (strcmp(currConn.nickname, nickname) == 0){
+            if (currConn.index != DISCONNECTED){
+                server.disconnectClient(currConn.index);
+            }
+        }
+    }
+    return;
+}
+
+void cmd_mute(Channel *currChann, char *nickname){
+    for (Connection &currConn : currChann->v_connections){
+        if (strcmp(currConn.nickname, nickname) == 0){
+            if (currConn.index != DISCONNECTED){
+                server.muteClient(currConn.index);
+            }
+        }
+    }
+    return;
+}
+
+void cmd_unmute(Channel *currChann, char *nickname){
+    for (Connection &currConn : currChann->v_connections){
+        if (strcmp(currConn.nickname, nickname) == 0){
+            if (currConn.index != DISCONNECTED){
+                server.unmuteClient(currConn.index);
+            }
+        }
+    }
+    return;
+}
 
 void exitSignalHandler(int signum) {
     printf("\nTo exit, type '/quit' in the terminal\n");
@@ -35,19 +69,41 @@ void serverClientCommunication(int index){
             server.disconnectClient(currConnection.index);
         }
 
+        Channel *currChann = server._search_channel(currConnection.channel_name);
+
         // '/ping' return
         if (strcmp(message, "/ping") == 0){
             server._reply((char*)"Server: pong\n", currConnection);
             continue;
         }
 
+        // if current user is admin, checks commands
+        if (strcmp(currChann->admin_nickname, currConnection.nickname) == 0){
+            if (!strncmp(message, "/kick", 5)){
+                printf("kick\n");
+                cmd_kick(currChann, &message[6]);
+                //server.disconnectClient(index);
+            }
+            if (!strncmp(message, "/mute", 5)){
+                printf("mute\n");
+                cmd_mute(currChann, &message[6]);
+            }
+            if (!strncmp(message, "/unmute", 7)){
+                printf("unmute\n");
+                cmd_unmute(currChann, &message[8]);
+            }
+            if (!strcmp(message, "/whois")){
+                printf("whois\n");
+            }
+        } 
+
         /* TODO
          *  Mostrar nickname personalizado */
 
-        printf("_communication) channelname: %s\n", currConnection.channel_name);
         //sending message
         std::string str(message);
-        str = std::to_string(index)+": "+str+"\n";
+        std::string nick_str(currConnection.nickname);
+        str = nick_str+": "+str+"\n";
         server._send(currConnection, str.data());
     }
 }
@@ -60,6 +116,7 @@ void serverInput(){
         printf("Server Command: %s\n", input.c_str());
         if(input.compare("/quit") == 0){
             running = false;
+            close(server.SOCKET);
         }
     }
 

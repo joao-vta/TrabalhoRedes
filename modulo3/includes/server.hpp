@@ -19,21 +19,24 @@ typedef struct connection_t {
     int index;
     char channel_name[200];
     int SOCKET;
+    char nickname[50];
 } Connection;
 
 typedef struct channel_ {
     char name[200];
+    char admin_nickname[50];
     vector<Connection> v_connections;
 } Channel;
 
 class Server {
     private:
-        int SOCKET;
         SockAddrIn ADDRESS;
         int CURR_CLIENT_INDEX;
         int MAX_MSG_SIZE;
+        vector<string> v_muted;
         
     public:
+        int SOCKET;
         vector<Connection> clientConnections;
         vector<Channel> v_channels;
         
@@ -46,4 +49,6 @@ class Server {
         void _send(Connection srcConn, char *message);
 
         void disconnectClient(int index);
+        void muteClient(int index);
+        void unmuteClient(int index);
 };
