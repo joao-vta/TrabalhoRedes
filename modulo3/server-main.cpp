@@ -47,7 +47,7 @@ void serverClientCommunication(int index){
         printf("_communication) channelname: %s\n", currConnection.channel_name);
         //sending message
         std::string str(message);
-        str = std::to_string(index)+": "+str+"\n";
+        str = currConnection.nickname+": "+str+"\n";
         server._send(currConnection, str.data());
     }
 }

@@ -54,13 +54,20 @@ void receive_message(){
     return;
 }
 
-void get_nickname(){
-    cout << "Digite seu nickname: ";
+void set_nickname(){
     string nickname;
-    cin >> nickname;
+    bool notValid = true;
+    
+    while(notValid){
+        cout << "Type your nickname: ";
+        cin >> nickname;
+        if(nickname.length() < 50)
+            notValid = false;
+        else
+            cout << "Nickname must be smaller than 50 characters." << endl;
+    }
 
     client.setNickname(nickname);
-
     return;
 }
 
@@ -87,7 +94,7 @@ void starting_menu(){
                 << "\n\t/join: connect to a channel\n" 
                 << "\t/nickname to set a custom nickname\n" 
                 << "\t/quit to exit\n";
-        getline(cin, option);
+        cin >> option;
 
         /* TODO
          *  Connect ainda existe neste módulo? */
@@ -99,6 +106,7 @@ void starting_menu(){
         if (option.compare("/join") == 0){
 
             char channel_name[200];
+            memset(channel_name, 0, sizeof(channel_name));
             cout << "Insira o nome do canal: ";
             cin >> channel_name;
             if(check_channel_name(channel_name)){
@@ -107,7 +115,7 @@ void starting_menu(){
             }
         }
         else if (option.compare("/nickname") == 0){
-            get_nickname();
+            set_nickname();
         }
         else if (option.compare("/quit") == 0){
             exit(1);
@@ -125,7 +133,7 @@ int main(){
      *  Precisamos checar se nickname é único em
      *  algum momento? */
     //asking for nickname on start
-    get_nickname();
+    set_nickname();
 
     //starting menu
     starting_menu();

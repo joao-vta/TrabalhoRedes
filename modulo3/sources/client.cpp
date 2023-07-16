@@ -1,5 +1,7 @@
 #include "../includes/client.hpp"
 
+#include <iostream>
+
 Client::Client(){
     // there's no need to bind the socket to a port
     // the OS will automatically do it
@@ -34,8 +36,13 @@ void Client::_join(char channel_name[], int serverPort, const char* serverIP){
     
     this->_connect(serverPort, serverIP);
 
-    int inputSize = strlen(channel_name);
-    if(send(this->SOCKET, channel_name, inputSize, 0) < 0){
+    if(send(this->SOCKET, this->nickname.c_str(), this->nickname.length()+1, 0) < 0){
+        printf("Failed to send group name!\n");
+        exit(1);
+    }
+
+    int channelNameSize = strlen(channel_name)+1;
+    if(send(this->SOCKET, channel_name, channelNameSize, 0) < 0){
         printf("Failed to send group name!\n");
         exit(1);
     }

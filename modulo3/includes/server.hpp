@@ -19,6 +19,7 @@ typedef struct connection_t {
     int index;
     char channel_name[200];
     int SOCKET;
+    string nickname;
 } Connection;
 
 typedef struct channel_ {
