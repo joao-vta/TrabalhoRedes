@@ -19,11 +19,12 @@ typedef struct connection_t {
     int index;
     char channel_name[200];
     int SOCKET;
-    string nickname;
+    char nickname[50];
 } Connection;
 
 typedef struct channel_ {
     char name[200];
+    char admin_nickname[50];
     vector<Connection> v_connections;
 } Channel;
 

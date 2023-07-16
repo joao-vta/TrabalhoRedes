@@ -55,13 +55,14 @@ void receive_message(){
 }
 
 void set_nickname(){
-    string nickname;
+    char nickname[50];
     bool notValid = true;
     
     while(notValid){
+        memset(nickname, 0, 50);
         cout << "Type your nickname: ";
         cin >> nickname;
-        if(nickname.length() < 50)
+        if(strlen(nickname) < 50)
             notValid = false;
         else
             cout << "Nickname must be smaller than 50 characters." << endl;

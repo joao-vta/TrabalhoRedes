@@ -60,22 +60,24 @@ int Server::_accept(){
 
     // receiving connection nickname
     char nickname[50];
+    memset(nickname, 0, 50);
     if (recv(currConn.SOCKET, nickname, this->MAX_MSG_SIZE, 0) < 0){
         printf("Failed to receive channel name from client!\n");
     }
     else{
         printf("Nickname = %s\n", nickname);
     }
-    currConn.nickname = nickname;
+    strcpy(currConn.nickname, nickname);
 
     // receiving channel name
     char channel_name[200];
+    memset(channel_name, 0, 50);
     if (recv(currConn.SOCKET, channel_name, this->MAX_MSG_SIZE, 0) < 0){
         printf("Failed to receive channel name from client!\n");
     }
     else{
         printf("channel = %s\n", channel_name);
-        printf("Connection with client %s stabilished.\n", currConn.nickname.c_str());
+        printf("Connection with client %s stabilished.\n", currConn.nickname);
     }
     strcpy(currConn.channel_name, channel_name);
 
@@ -83,6 +85,7 @@ int Server::_accept(){
     if (currChann == NULL){
         currChann = (Channel*) malloc(sizeof(Channel));
         strcpy(currChann->name, channel_name);
+        strcpy(currChann->admin_nickname, currConn.nickname);
     }
 
     currChann->v_connections.push_back(currConn);

@@ -16,7 +16,7 @@ typedef struct sockaddr_in SockAddrIn;
 
 class Client {
     private:
-        string nickname = "";
+        char nickname[50];
     public:
         int SOCKET;
 
@@ -26,5 +26,5 @@ class Client {
         void _send(string &message);
         void _receive(char *message, int size);
 
-        void setNickname(string nickname);
+        void setNickname(char nickname[]);
 };

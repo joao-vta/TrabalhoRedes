@@ -10,6 +10,7 @@ Client::Client(){
         printf("Socket creation failed!\n");
         exit(1);
     }
+    memset(this->nickname, 0, 50);
 }
 
 void Client::_connect(int serverPort, const char* serverIP){
@@ -36,7 +37,7 @@ void Client::_join(char channel_name[], int serverPort, const char* serverIP){
     
     this->_connect(serverPort, serverIP);
 
-    if(send(this->SOCKET, this->nickname.c_str(), this->nickname.length()+1, 0) < 0){
+    if(send(this->SOCKET, this->nickname, strlen(this->nickname)+1, 0) < 0){
         printf("Failed to send group name!\n");
         exit(1);
     }
@@ -50,8 +51,9 @@ void Client::_join(char channel_name[], int serverPort, const char* serverIP){
     return;
 }
 
-void Client::setNickname(string nickname){
-    this->nickname = nickname;
+void Client::setNickname(char nickname[]){
+    strcpy(this->nickname, nickname);
+    return;
 }
 
 void Client::_send(string &message){
