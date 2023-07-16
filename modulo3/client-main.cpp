@@ -64,17 +64,30 @@ void get_nickname(){
     return;
 }
 
+bool check_channel_name(char name[]){
+    if(!(name[0] == '#' || name[0] == '&')){
+        cout << "Channel name must begin with either '#' or '&'!" << endl;
+        return false;
+    }
+
+    if(!(strchr(name, ',') == NULL && strchr(name, ' ') == NULL)){
+        cout << "Channel name can't contain spaces or commas!" << endl;
+        return false;
+    }
+    
+    return true;
+}
+
 void starting_menu(){
     std::string option;
     while(running){
 
         // input menu
         cout << "Options:"
-                //<< "\n\t/connect: connect to the server\n" 
                 << "\n\t/join: connect to a channel\n" 
                 << "\t/nickname to set a custom nickname\n" 
                 << "\t/quit to exit\n";
-        cin >> option;
+        getline(cin, option);
 
         /* TODO
          *  Connect ainda existe neste módulo? */
@@ -88,9 +101,10 @@ void starting_menu(){
             char channel_name[200];
             cout << "Insira o nome do canal: ";
             cin >> channel_name;
-
-            client._join(channel_name, SERVER_PORT, SERVER_IP);
-            break;
+            if(check_channel_name(channel_name)){
+                client._join(channel_name, SERVER_PORT, SERVER_IP);
+                break;
+            }
         }
         else if (option.compare("/nickname") == 0){
             get_nickname();
