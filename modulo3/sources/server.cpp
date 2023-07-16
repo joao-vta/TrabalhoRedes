@@ -61,7 +61,7 @@ int Server::_accept(){
     // receiving connection nickname
     char nickname[50];
     memset(nickname, 0, 50);
-    if (recv(currConn.SOCKET, nickname, this->MAX_MSG_SIZE, 0) < 0){
+    if (recv(currConn.SOCKET, nickname, 50, 0) < 0){
         printf("Failed to receive channel name from client!\n");
     }
     else{
@@ -71,8 +71,8 @@ int Server::_accept(){
 
     // receiving channel name
     char channel_name[200];
-    memset(channel_name, 0, 50);
-    if (recv(currConn.SOCKET, channel_name, this->MAX_MSG_SIZE, 0) < 0){
+    memset(channel_name, 0, 200);
+    if (recv(currConn.SOCKET, channel_name, 200, 0) < 0){
         printf("Failed to receive channel name from client!\n");
     }
     else{
