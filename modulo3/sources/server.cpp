@@ -1,5 +1,7 @@
 #include "../includes/server.hpp"
 
+#include <algorithm>
+
 Server::Server(int port, int max_msg_size){
     this->MAX_MSG_SIZE = max_msg_size;
     // initializing client index
@@ -145,9 +147,18 @@ void Server::_send(Connection srcConn, char *message){
         }
     }
 
-    //for (Connection &connection : this->clientConnections){
+    string srcNickname = srcConn.nickname;
+    if(find(v_muted.begin(), v_muted.end(), srcNickname) != v_muted.end()){
+        return;
+    }
+
     for (Connection &connection : currChann->v_connections){
         this->_reply(message, connection);
     }
+    return;
+}
+
+void Server::muteClient(int index){
+    this->v_muted.push_back(this->clientConnections[index].nickname);
     return;
 }

@@ -30,12 +30,13 @@ typedef struct channel_ {
 
 class Server {
     private:
-        int SOCKET;
         SockAddrIn ADDRESS;
         int CURR_CLIENT_INDEX;
         int MAX_MSG_SIZE;
+        vector<string> v_muted;
         
     public:
+        int SOCKET;
         vector<Connection> clientConnections;
         vector<Channel> v_channels;
         
@@ -48,4 +49,5 @@ class Server {
         void _send(Connection srcConn, char *message);
 
         void disconnectClient(int index);
+        void muteClient(int index);
 };

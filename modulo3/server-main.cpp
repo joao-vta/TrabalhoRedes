@@ -1,4 +1,5 @@
 #include "includes/server.hpp"
+#include <atomic>
 
 using namespace std;
 
@@ -17,6 +18,17 @@ void cmd_kick(Channel* currChann, char *nickname){
         if (strcmp(currConn.nickname, nickname) == 0){
             if (currConn.index != DISCONNECTED){
                 server.disconnectClient(currConn.index);
+            }
+        }
+    }
+    return;
+}
+
+void cmd_mute(Channel *currChann, char *nickname){
+    for (Connection &currConn : currChann->v_connections){
+        if (strcmp(currConn.nickname, nickname) == 0){
+            if (currConn.index != DISCONNECTED){
+                server.muteClient(currConn.index);
             }
         }
     }
@@ -61,8 +73,9 @@ void serverClientCommunication(int index){
                 cmd_kick(currChann, &message[6]);
                 //server.disconnectClient(index);
             }
-            if (!strcmp(message, "/mute")){
+            if (!strncmp(message, "/mute", 5)){
                 printf("mute\n");
+                cmd_mute(currChann, &message[6]);
             }
             if (!strcmp(message, "/unmute")){
                 printf("unmute\n");
@@ -91,6 +104,7 @@ void serverInput(){
         printf("Server Command: %s\n", input.c_str());
         if(input.compare("/quit") == 0){
             running = false;
+            close(server.SOCKET);
         }
     }
 
