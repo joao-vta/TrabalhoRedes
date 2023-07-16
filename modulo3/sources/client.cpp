@@ -37,13 +37,13 @@ void Client::_join(char channel_name[], int serverPort, const char* serverIP){
     
     this->_connect(serverPort, serverIP);
 
-    if(send(this->SOCKET, this->nickname, strlen(this->nickname)+1, 0) < 0){
+    if(send(this->SOCKET, this->nickname, 50, 0) < 0){
         printf("Failed to send group name!\n");
         exit(1);
     }
 
     int channelNameSize = strlen(channel_name)+1;
-    if(send(this->SOCKET, channel_name, channelNameSize, 0) < 0){
+    if(send(this->SOCKET, channel_name, 200, 0) < 0){
         printf("Failed to send group name!\n");
         exit(1);
     }
