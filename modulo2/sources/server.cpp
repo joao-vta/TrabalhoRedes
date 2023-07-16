@@ -69,21 +69,29 @@ int Server::_receive(Connection currConnection, char *message){
     return received_bytes;
 }
 
-void Server::_send(char *message){
-    for (Connection &connection : this->clientConnections){
-        if(connection.index != DISCONNECTED){
-            int attempt;
-            for(attempt = 0; attempt < 5; attempt++){
-                if(send(connection.SOCKET, message, strlen(message)+1, 0) < 0){
-                    printf("Failed to send message to client %d (try %d)!\n", connection.index, attempt+1);
-                }
-                else{
-                    break;
-                }
+
+void Server::_reply(char *message, Connection connection){
+
+    if(connection.index != DISCONNECTED){
+        int attempt;
+        for(attempt = 0; attempt < 5; attempt++){
+            if(send(connection.SOCKET, message, strlen(message), 0) < 0){
+                printf("Failed to send message to client %d (try %d)!\n", connection.index, attempt+1);
             }
-            if(attempt > 4){
-                disconnectClient(connection.index);
+            else{
+                break;
             }
         }
+        if(attempt > 4){
+            disconnectClient(connection.index);
+        }
     }
+    return;
+}
+
+void Server::_send(char *message){
+    for (Connection &connection : this->clientConnections){
+        this->_reply(message, connection);
+    }
+    return;
 }

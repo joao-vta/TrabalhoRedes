@@ -14,7 +14,7 @@ server:
 	@$(CC) -o $(SERVER_BIN) $(SERVER_PROG) $(SOURCES) -I$(INCLUDES) $(FLAGS)
 
 client:
-	@$(CC) -o $(CLIENT_BIN) $(CLIENT_PROG) -I$(INCLUDES) $(FLAGS)
+	@$(CC) -o $(CLIENT_BIN) $(CLIENT_PROG) $(SOURCES) -I$(INCLUDES) $(FLAGS)
 
 runServer:
 	@./$(SERVER_BIN)

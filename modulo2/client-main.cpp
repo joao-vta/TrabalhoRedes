@@ -1,46 +1,38 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include "includes/client.hpp"
 #include <iostream>
 #include <string.h>
-#include <unistd.h>
-#include <csignal>
-#include <thread>
-#include <vector>
-#include <arpa/inet.h>
 
-#define SERVER_PORT 5001
+using namespace std;
+
+#define SERVER_PORT 5002
 #define SERVER_IP "127.0.0.1"
+#define MAX_MSG_SIZE 16
 
-#define MAX_MSG_SIZE 4096
+Client client;
+volatile bool running = true;
 
-int running = true;
+void exitSignalHandler(int signum){
+    printf("\nTo exit, type '/quit' in the terminal\n");
+}
 
-// creating socket and verifying
-int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-void sigpipe_handler(int err){
-    printf("Server disconnected. Closing client %d.\n", clientSocket);
-    close(clientSocket);
+void sigpipeHandler(int signum){
+    printf("Server disconnected. Closing client.\n");
+    close(client.SOCKET);
     exit(1);
 }
 
-void send_message(std::string input_msg){
-
+void send_message(){
+    string message;
     while(running){
-        //printf("Enter a message: ");
-        std::getline(std::cin, input_msg);
+        // getting input
+        getline(cin, message);
+        // send it to client
+        client._send(message);
 
-        // we need inputSize+1 so the message sent includes '\0'
-        int inputSize = input_msg.size();
-        
-        // TCP automatically fragments depending if our input_msg is greater than MAX_MSG_SIZE
-        if(send(clientSocket, input_msg.c_str(), inputSize, 0) < 0){
-            printf("Failed to send message!\n");
-            exit(1);
-        }
-
-        if(strcmp(input_msg.c_str(), "exit") == 0){
+        // checking if client wants to quit
+        if(strcmp(message.c_str(), "/quit") == 0){
             running = false;
+            close(client.SOCKET);
         }
     }
 
@@ -50,77 +42,72 @@ void send_message(std::string input_msg){
 void receive_message(){
     char message[MAX_MSG_SIZE+1];
     while(running){
-        // receiving reply from server
         memset(message, 0, sizeof(message));
-        int server_reply = recv(clientSocket, message, sizeof(message)-1, 0);
-        if (server_reply <= 0) {
-            if (server_reply == 0) raise(SIGPIPE);
-            printf("Failed to receive reply");
-            exit(1);
-        }
-
-        message[server_reply]=0;
-        printf("Received reply: %s\n", message);
+        client._receive(message, MAX_MSG_SIZE);
+        /* TODO
+         *  print ficará neste formato mesmo?
+        */
+        //printf("Received reply: %s\n", message);
+        printf("%s", message);
     }
 
     return;
 }
 
-int main(){
+/* TODO
+ *  Reavaliar se é bom manter para o módulo 2 */
+void get_nickname(){
+    cout << "Digite seu nickname: ";
+    string nickname;
+    cin >> nickname;
 
-    signal(SIGPIPE, sigpipe_handler);
+    client.setNickname(nickname);
 
-    if(clientSocket < 0){
-        printf("Socket creation failed!\n");
-        exit(1);
-    }
+    return;
+}
 
-    // there's no need to bind the socket to a port
-    // the OS will automatically do it
-
-    // setting up server IP and PORT
-    struct sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(SERVER_PORT);
-    // converting IP from string to bytes
-    if (inet_pton(AF_INET, SERVER_IP, &(serverAddress.sin_addr)) <= 0) {
-        printf("Invalid server address!\n");
-        exit(1);
-    }
-
-    // connect the client socket to server address
-    if(connect(clientSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) != 0){
-        printf("Couldn't connect to server!\n");
-        exit(0);
-    }
-    printf("Connection with server stabilished\n");
-    
-    // receive and send messages
-    //bool running = true;
-    std::string input_msg;
-
-    std::vector<std::thread> v_threads;
-
-    std::thread th_send(send_message, input_msg);
-    std::thread th_recv(receive_message);
-
-    /*
+void starting_menu(){
+    std::string option;
     while(running){
-        
-        std::thread th_send(send_message, input_msg);
-        std::thread th_recv(receive_message, message);
 
-        send_message(input_msg);
-        receive_message(message);
+        // input menu
+        cout << "Options:\n\t/connect: connect to the server\n" 
+                //<< "\t/nickname to set a custom nickname\n" 
+                << "\t/quit to exit\n";
+        cin >> option;
 
-
+        // command options
+        if (option.compare("/connect") == 0){
+            client._connect(SERVER_PORT, SERVER_IP);
+            break;
+        }
+        else if (option.compare("/quit") == 0){
+            exit(1);
+        }
+        /* TODO
+         *  Reavaliar se é bom manter para o módulo 2
+        else if (option.compare("/nickname") == 0){
+            get_nickname();
+        }
+        */
     }
-    */
-    th_send.join();
-    th_recv.join();
+    return;
+}
 
-    printf("Client connection closed.\n");
-    close(clientSocket);
+int main(){
+    //initializing signal handlers
+    signal(SIGPIPE, sigpipeHandler);
+    signal(SIGINT, exitSignalHandler);
+
+    //starting menu
+    starting_menu();
+
+    // initializing threads
+    thread thSend(send_message);
+    thread thReceive(receive_message);
+
+    thSend.join();
+    thReceive.join();
 
     return 0;
 }

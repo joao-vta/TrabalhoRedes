@@ -34,6 +34,7 @@ class Server {
         void _listen();
         int _accept();
         int _receive(Connection currConnection, char *message);
+        void _reply(char *message, Connection connection);
         void _send(char *message);
 
         void disconnectClient(int index);
