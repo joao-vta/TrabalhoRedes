@@ -8,4 +8,4 @@
 - **GCC:** 11.3.0
 - **OS:** Ubuntu 22.04.2 LTS
 
-### Link do Vídeo:
+### Link do Vídeo: https://drive.google.com/file/d/1W4LO5linWwgqQa0RrDwhQTclPyC2PLbY/view?usp=drive_link
