@@ -19,6 +19,7 @@ typedef struct connection_t {
     int index;
     char channel_name[200];
     int SOCKET;
+    char ipv4_address[INET_ADDRSTRLEN];
     char nickname[50];
 } Connection;
 

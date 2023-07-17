@@ -1,6 +1,7 @@
 #include "../includes/server.hpp"
 
 #include <algorithm>
+#include <arpa/inet.h>
 
 Server::Server(int port, int max_msg_size){
     this->MAX_MSG_SIZE = max_msg_size;
@@ -58,6 +59,11 @@ int Server::_accept(){
         printf("Server failed to connect to client!\n");
         exit(0);
     }
+    
+    // getting client ip address
+    inet_ntop(AF_INET, &clientAddress.sin_addr, currConn.ipv4_address, sizeof(currConn.ipv4_address));
+    printf("addr: %s\n", currConn.ipv4_address); 
+
     currConn.index = CURR_CLIENT_INDEX++;
 
     // receiving connection nickname
@@ -92,7 +98,6 @@ int Server::_accept(){
 
     currChann->v_connections.push_back(currConn);
     this->v_channels.push_back((*currChann));
-    printf("_accept) channelname: %s\n", currConn.channel_name);
 
     // attaching current connection
     this->clientConnections.push_back(currConn);
@@ -137,7 +142,6 @@ void Server::_reply(char *message, Connection connection){
 
 void Server::_send(Connection srcConn, char *message){
 
-    printf("_send) channelname: %s\n", srcConn.channel_name);
 
     Channel *currChann = NULL;
     for (Channel &C : this->v_channels){
@@ -164,7 +168,6 @@ void Server::muteClient(int index){
 }
 
 void Server::unmuteClient(int index){
-    printf("Entered\n");
     this->v_muted.erase(remove(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname));
     cout << "printing" << endl;
     for(auto i : v_muted){

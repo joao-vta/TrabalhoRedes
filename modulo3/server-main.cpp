@@ -46,6 +46,22 @@ void cmd_unmute(Channel *currChann, char *nickname){
     return;
 }
 
+std::string cmd_whois(Channel *currChann, char *nickname){
+    printf("nickname: %s\n", nickname);
+    std::string whois_reply("User not found.");
+    for (Connection &currConn : currChann->v_connections){
+        if (strcmp(currConn.nickname, nickname) == 0){
+            if (currConn.index != DISCONNECTED){
+                whois_reply = "IP from "+ std::string(nickname) + " => " + std::string(currConn.ipv4_address) + "\n";
+                break;
+            }
+        }
+    }
+    printf("cmd_whois_reply: %s\n", whois_reply.data());
+
+    return whois_reply;
+}
+
 void exitSignalHandler(int signum) {
     printf("\nTo exit, type '/quit' in the terminal\n");
 }
@@ -79,26 +95,27 @@ void serverClientCommunication(int index){
 
         // if current user is admin, checks commands
         if (strcmp(currChann->admin_nickname, currConnection.nickname) == 0){
-            if (!strncmp(message, "/kick", 5)){
+            if (!strncmp(message, "/kick ", 6)){
                 printf("kick\n");
                 cmd_kick(currChann, &message[6]);
-                //server.disconnectClient(index);
             }
-            if (!strncmp(message, "/mute", 5)){
+            if (!strncmp(message, "/mute ", 6)){
                 printf("mute\n");
                 cmd_mute(currChann, &message[6]);
             }
-            if (!strncmp(message, "/unmute", 7)){
+            if (!strncmp(message, "/unmute ", 8)){
                 printf("unmute\n");
                 cmd_unmute(currChann, &message[8]);
             }
-            if (!strcmp(message, "/whois")){
+            if (!strncmp(message, "/whois ", 7)){
                 printf("whois\n");
+                std::string whois_reply = cmd_whois(currChann, &message[7]);
+                printf("whois_reply: %s\n", whois_reply.data());
+                server._reply(whois_reply.data(), currConnection);
+            
+                continue;
             }
         } 
-
-        /* TODO
-         *  Mostrar nickname personalizado */
 
         //sending message
         std::string str(message);

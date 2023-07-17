@@ -44,10 +44,6 @@ void receive_message(){
     while(running){
         memset(message, 0, sizeof(message));
         client._receive(message, MAX_MSG_SIZE);
-        /* TODO
-         *  print ficará neste formato mesmo?
-        */
-        //printf("Received reply: %s\n", message);
         printf("%s", message);
     }
 
@@ -97,15 +93,8 @@ void starting_menu(){
                 << "\t/quit to exit\n";
         cin >> option;
 
-        /* TODO
-         *  Connect ainda existe neste módulo? */
         // command options
-        if (option.compare("/connect") == 0){
-            client._connect(SERVER_PORT, SERVER_IP);
-            break;
-        }
         if (option.compare("/join") == 0){
-
             char channel_name[200];
             memset(channel_name, 0, sizeof(channel_name));
             cout << "Insira o nome do canal: ";
@@ -130,9 +119,6 @@ int main(){
     signal(SIGPIPE, sigpipeHandler);
     signal(SIGINT, exitSignalHandler);
 
-    /* TODO
-     *  Precisamos checar se nickname é único em
-     *  algum momento? */
     //asking for nickname on start
     set_nickname();
 
