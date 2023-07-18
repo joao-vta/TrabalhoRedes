@@ -99,6 +99,10 @@ int Server::_accept(){
 
     Channel *currChann = _search_channel(channel_name);
     if (currChann == NULL){
+        
+        std::string admin_nickname = "@"+std::string(nickname);
+        strcpy(currConn.nickname, admin_nickname.data());
+
         currChann = (Channel*) malloc(sizeof(Channel));
         strcpy(currChann->name, channel_name);
         strcpy(currChann->admin_nickname, currConn.nickname);
