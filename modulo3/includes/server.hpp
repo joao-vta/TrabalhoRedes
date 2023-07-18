@@ -46,6 +46,7 @@ class Server {
         int _accept();
         Connection* _search_connection(char nickname[]);
         Channel* _search_channel(char name[]);
+        void _changeConnChannel(Connection *currConn, char new_channel_name[]);
         int _receive(Connection currConnection, char *message);
         void _reply(char *message, Connection connection);
         void _send(Connection srcConn, char *message);

@@ -98,6 +98,12 @@ void serverClientCommunication(int index){
 
         Channel *currChann = server._search_channel(currConnection.channel_name);
 
+        // if cmd is join, user must switch channels
+        if (strncmp(message, "/join ", 6) == 0){
+            server._changeConnChannel(&currConnection, &message[6]);
+            continue;
+        }
+
         //std::string srcNickname(currConnection.nickname);
         if (server._isMuted(currConnection)){
             continue;

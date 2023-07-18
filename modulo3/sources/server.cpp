@@ -187,6 +187,30 @@ void Server::_send(Connection srcConn, char *message){
     return;
 }
 
+void Server::_changeConnChannel(Connection *currConn, char new_channel_name[]){
+
+    Channel *currChann = _search_channel(currConn->channel_name);
+    if (currChann == NULL) return;
+
+    // erases nickname from current channel's list
+    for (int i=0; i < (int)currChann->v_connections.size(); i++){
+        if (!strcmp(currChann->v_connections[i].nickname, currConn->nickname)){
+            currChann->v_connections.erase(currChann->v_connections.begin()+i);
+            break;
+        }
+    }
+
+    strcpy(currConn->channel_name, new_channel_name);
+     
+    Channel *newChann = _search_channel(new_channel_name);
+    if (newChann == NULL){
+        printf("creates new channel!\n");
+    }
+    newChann->v_connections.push_back((*currConn));
+
+    return;
+}
+
 void Server::muteClient(int index){
 
     Connection currConn = this->clientConnections[index];
@@ -194,7 +218,7 @@ void Server::muteClient(int index){
     Channel *currChann = _search_channel(currConn.channel_name);
     if (currChann == NULL) return;
 
-    // if there client is not already in the muted list
+    // if client is not already in the muted list
     std::vector<std::string> v_muted = currChann->v_muted;
     if(find(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname) == v_muted.end()){
         currChann->v_muted.push_back(this->clientConnections[index].nickname);
