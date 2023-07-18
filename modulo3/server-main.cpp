@@ -156,15 +156,26 @@ void serverClientCommunication(int index){
 
             if (!strncmp(message, "/kick ", 6)){
                 printf("kick\n");
-                cmd_kick(currChann, &message[6]);
+
+                // admins cannot be kicked or muted
+                if (strcmp(currChann->admin_nickname, &message[6]) != 0){
+                    cmd_kick(currChann, &message[6]);
+                }
             }
             if (!strncmp(message, "/mute ", 6)){
                 printf("mute\n");
-                cmd_mute(currChann, &message[6]);
+
+                // admins cannot be kicked or muted
+                if (strcmp(currChann->admin_nickname, &message[6]) != 0){
+                    cmd_mute(currChann, &message[6]);
+                }
             }
             if (!strncmp(message, "/unmute ", 8)){
                 printf("unmute\n");
-                cmd_unmute(currChann, &message[8]);
+                // admins cannot be kicked or muted
+                if (strcmp(currChann->admin_nickname, &message[8]) != 0){
+                    cmd_unmute(currChann, &message[8]);
+                }
             }
             if (!strncmp(message, "/whois ", 7)){
                 printf("whois\n");
