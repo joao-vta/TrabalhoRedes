@@ -61,7 +61,7 @@ void set_nickname(){
         if(strlen(nickname) < 50)
             notValid = false;
         else
-            cout << "Nickname must be smaller than 50 characters." << endl;
+            cout << "Nickname must be shorter than 50 characters." << endl;
     }
 
     client.setNickname(nickname);
@@ -91,14 +91,23 @@ void starting_menu(){
                 << "\n\t/join: connect to a channel\n" 
                 << "\t/nickname to set a custom nickname\n" 
                 << "\t/quit to exit\n";
-        cin >> option;
+        getline(cin, option);
 
-        // command options
         if (option.compare("/join") == 0){
             char channel_name[200];
             memset(channel_name, 0, sizeof(channel_name));
             cout << "Insira o nome do canal: ";
             cin >> channel_name;
+            if(check_channel_name(channel_name)){
+                client._join(channel_name, SERVER_PORT, SERVER_IP);
+                break;
+            }
+        }
+        else if (strncmp(option.data(), "/join ", 6) == 0){
+            char channel_name[200];
+            memset(channel_name, 0, sizeof(channel_name));
+
+            strcpy(channel_name, &option.data()[6]);
             if(check_channel_name(channel_name)){
                 client._join(channel_name, SERVER_PORT, SERVER_IP);
                 break;
@@ -121,6 +130,7 @@ int main(){
 
     //asking for nickname on start
     set_nickname();
+    getchar();
 
     //starting menu
     starting_menu();

@@ -62,6 +62,17 @@ std::string cmd_whois(Channel *currChann, char *nickname){
     return whois_reply;
 }
 
+void change_nickname(Connection *currConn, char *nickname){
+
+    if(strlen(nickname) > 50){
+        cout << "Nickname must be shorter than 50 characters." << endl;
+        return;
+    }
+
+    strcpy(currConn->nickname, nickname);
+    return;
+}
+
 void exitSignalHandler(int signum) {
     printf("\nTo exit, type '/quit' in the terminal\n");
 }
@@ -86,6 +97,40 @@ void serverClientCommunication(int index){
         }
 
         Channel *currChann = server._search_channel(currConnection.channel_name);
+
+        std::string srcNickname(currConnection.nickname);
+        if (server._isMuted(srcNickname)){
+            continue;
+        }
+        
+        if (strncmp(message, "/nickname ", 10) == 0){
+
+            // searches for currConn nickname in channel's connections list
+            /*
+            int channelCurrConnIdx = std::find(currChann->v_connections.begin(), currChann->v_connections.end(), currConnection.nickname); 
+            printf("channelIdx: %d\n", channelCurrConnIdx);
+            */
+
+            for (int i=0; i < (int)currChann->v_connections.size(); i++){
+                if (strcmp(currChann->v_connections[i].nickname, currConnection.nickname) == 0){
+                    strcpy(currChann->v_connections[i].nickname, &message[10]);
+                }
+            }
+                
+            // if current user is admin, channel must be updated
+            bool is_admin = false;
+            if (strcmp(currChann->admin_nickname, currConnection.nickname) == 0){
+                is_admin = true;
+            }
+            change_nickname(&currConnection, &message[10]);
+
+            if (is_admin == true){
+                strcpy(currChann->admin_nickname, currConnection.nickname);
+            }
+            server.clientConnections[index] = currConnection;
+
+            continue;
+        }
 
         // '/ping' return
         if (strcmp(message, "/ping") == 0){

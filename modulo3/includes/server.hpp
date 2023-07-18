@@ -49,6 +49,7 @@ class Server {
         void _reply(char *message, Connection connection);
         void _send(Connection srcConn, char *message);
 
+        bool _isMuted(string srcNickname);
         void disconnectClient(int index);
         void muteClient(int index);
         void unmuteClient(int index);

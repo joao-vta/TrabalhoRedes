@@ -140,6 +140,13 @@ void Server::_reply(char *message, Connection connection){
     return;
 }
 
+bool Server::_isMuted(std::string srcNickname){
+    if(find(this->v_muted.begin(), this->v_muted.end(), srcNickname) != this->v_muted.end()){
+        return true;
+    }
+    return false;
+}
+
 void Server::_send(Connection srcConn, char *message){
 
 
@@ -163,15 +170,18 @@ void Server::_send(Connection srcConn, char *message){
 }
 
 void Server::muteClient(int index){
-    this->v_muted.push_back(this->clientConnections[index].nickname);
+    // if there client is not already in the muted list
+    if(find(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname) == v_muted.end()){
+        this->v_muted.push_back(this->clientConnections[index].nickname);
+    }
     return;
 }
 
 void Server::unmuteClient(int index){
-    this->v_muted.erase(remove(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname));
-    cout << "printing" << endl;
-    for(auto i : v_muted){
-        cout << "elem: " << i << endl;
+    if(find(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname) != v_muted.end()){
+        //this->v_muted.erase(remove(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname));
+        //this->v_muted.push_back(index);
+        this->v_muted.erase(v_muted.begin() + index);
     }
     return;
 }
