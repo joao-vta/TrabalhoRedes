@@ -100,8 +100,7 @@ int Server::_accept(){
     Channel *currChann = _search_channel(channel_name);
     if (currChann == NULL){
         
-        std::string admin_nickname = "@"+std::string(nickname);
-        strcpy(currConn.nickname, admin_nickname.data());
+        strcpy(currConn.nickname, nickname);
 
         currChann = (Channel*) malloc(sizeof(Channel));
         strcpy(currChann->name, channel_name);
@@ -200,13 +199,19 @@ void Server::_changeConnChannel(Connection *currConn, char new_channel_name[]){
         }
     }
 
-    strcpy(currConn->channel_name, new_channel_name);
-     
     Channel *newChann = _search_channel(new_channel_name);
     if (newChann == NULL){
+        newChann = (Channel*) malloc(sizeof(Channel));
+        strcpy(newChann->name, new_channel_name);
+        strcpy(newChann->admin_nickname, currConn->nickname);
+
+        newChann->v_connections.push_back((*currConn));
+        this->v_channels.push_back((*newChann));
         printf("creates new channel!\n");
     }
+
     newChann->v_connections.push_back((*currConn));
+    strcpy(currConn->channel_name, new_channel_name);
 
     return;
 }

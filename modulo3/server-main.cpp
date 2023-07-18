@@ -148,7 +148,12 @@ void serverClientCommunication(int index){
         }
 
         // if current user is admin, checks commands
+        std::string nick_str(currConnection.nickname);
         if (strcmp(currChann->admin_nickname, currConnection.nickname) == 0){
+
+            // adds '@' to admin's name
+            nick_str = "@"+nick_str;
+
             if (!strncmp(message, "/kick ", 6)){
                 printf("kick\n");
                 cmd_kick(currChann, &message[6]);
@@ -172,10 +177,9 @@ void serverClientCommunication(int index){
         } 
 
         //sending message
-        std::string str(message);
-        std::string nick_str(currConnection.nickname);
-        str = nick_str+": "+str+"\n";
-        server._send(currConnection, str.data());
+        std::string str_message(message);
+        str_message = nick_str+": "+str_message+"\n";
+        server._send(currConnection, str_message.data());
     }
 }
 
