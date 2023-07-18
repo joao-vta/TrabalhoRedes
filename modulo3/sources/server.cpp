@@ -37,14 +37,22 @@ void Server::_listen(){
     }
 }
 
-Channel* Server::_search_channel(char name[]){
+Connection* Server::_search_connection(char nickname[]){
+    for (Connection &C : this->clientConnections){
+        if (!strcmp(C.nickname, nickname)){
+            return &C;
+        }
+    }
+    return NULL;
+}
 
+
+Channel* Server::_search_channel(char name[]){
     for (Channel &C : this->v_channels){
         if (!strcmp(C.name, name)){
             return &C;
         }
     }
-
     return NULL;
 }
 
@@ -140,15 +148,19 @@ void Server::_reply(char *message, Connection connection){
     return;
 }
 
-bool Server::_isMuted(std::string srcNickname){
-    if(find(this->v_muted.begin(), this->v_muted.end(), srcNickname) != this->v_muted.end()){
+bool Server::_isMuted(Connection currConn){
+
+    Channel *currChann = _search_channel(currConn.channel_name);
+    if (currChann == NULL) return false;
+
+    std::vector<std::string> v_muted = currChann->v_muted;
+    if(find(v_muted.begin(), v_muted.end(), currConn.nickname) != v_muted.end()){
         return true;
     }
     return false;
 }
 
 void Server::_send(Connection srcConn, char *message){
-
 
     Channel *currChann = NULL;
     for (Channel &C : this->v_channels){
@@ -159,6 +171,8 @@ void Server::_send(Connection srcConn, char *message){
     }
 
     string srcNickname = srcConn.nickname;
+
+    std::vector<std::string> v_muted = currChann->v_muted;
     if(find(v_muted.begin(), v_muted.end(), srcNickname) != v_muted.end()){
         return;
     }
@@ -170,18 +184,29 @@ void Server::_send(Connection srcConn, char *message){
 }
 
 void Server::muteClient(int index){
+
+    Connection currConn = this->clientConnections[index];
+
+    Channel *currChann = _search_channel(currConn.channel_name);
+    if (currChann == NULL) return;
+
     // if there client is not already in the muted list
+    std::vector<std::string> v_muted = currChann->v_muted;
     if(find(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname) == v_muted.end()){
-        this->v_muted.push_back(this->clientConnections[index].nickname);
+        currChann->v_muted.push_back(this->clientConnections[index].nickname);
     }
     return;
 }
 
 void Server::unmuteClient(int index){
+    Connection currConn = this->clientConnections[index];
+
+    Channel *currChann = _search_channel(currConn.channel_name);
+    if (currChann == NULL) return;
+    
+    std::vector<std::string> v_muted = currChann->v_muted;
     if(find(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname) != v_muted.end()){
-        //this->v_muted.erase(remove(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname));
-        //this->v_muted.push_back(index);
-        this->v_muted.erase(v_muted.begin() + index);
+        currChann->v_muted.erase(v_muted.begin() + index);
     }
     return;
 }
