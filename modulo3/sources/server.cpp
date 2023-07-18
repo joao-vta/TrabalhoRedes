@@ -1,6 +1,7 @@
 #include "../includes/server.hpp"
 
 #include <algorithm>
+#include <arpa/inet.h>
 
 Server::Server(int port, int max_msg_size){
     this->MAX_MSG_SIZE = max_msg_size;
@@ -36,14 +37,22 @@ void Server::_listen(){
     }
 }
 
-Channel* Server::_search_channel(char name[]){
+Connection* Server::_search_connection(char nickname[]){
+    for (Connection &C : this->clientConnections){
+        if (!strcmp(C.nickname, nickname)){
+            return &C;
+        }
+    }
+    return NULL;
+}
 
+
+Channel* Server::_search_channel(char name[]){
     for (Channel &C : this->v_channels){
         if (!strcmp(C.name, name)){
             return &C;
         }
     }
-
     return NULL;
 }
 
@@ -58,6 +67,11 @@ int Server::_accept(){
         printf("Server failed to connect to client!\n");
         exit(0);
     }
+    
+    // getting client ip address
+    inet_ntop(AF_INET, &clientAddress.sin_addr, currConn.ipv4_address, sizeof(currConn.ipv4_address));
+    printf("addr: %s\n", currConn.ipv4_address); 
+
     currConn.index = CURR_CLIENT_INDEX++;
 
     // receiving connection nickname
@@ -85,6 +99,9 @@ int Server::_accept(){
 
     Channel *currChann = _search_channel(channel_name);
     if (currChann == NULL){
+        
+        strcpy(currConn.nickname, nickname);
+
         currChann = (Channel*) malloc(sizeof(Channel));
         strcpy(currChann->name, channel_name);
         strcpy(currChann->admin_nickname, currConn.nickname);
@@ -92,7 +109,6 @@ int Server::_accept(){
 
     currChann->v_connections.push_back(currConn);
     this->v_channels.push_back((*currChann));
-    printf("_accept) channelname: %s\n", currConn.channel_name);
 
     // attaching current connection
     this->clientConnections.push_back(currConn);
@@ -135,9 +151,19 @@ void Server::_reply(char *message, Connection connection){
     return;
 }
 
-void Server::_send(Connection srcConn, char *message){
+bool Server::_isMuted(Connection currConn){
 
-    printf("_send) channelname: %s\n", srcConn.channel_name);
+    Channel *currChann = _search_channel(currConn.channel_name);
+    if (currChann == NULL) return false;
+
+    std::vector<std::string> v_muted = currChann->v_muted;
+    if(find(v_muted.begin(), v_muted.end(), currConn.nickname) != v_muted.end()){
+        return true;
+    }
+    return false;
+}
+
+void Server::_send(Connection srcConn, char *message){
 
     Channel *currChann = NULL;
     for (Channel &C : this->v_channels){
@@ -148,6 +174,8 @@ void Server::_send(Connection srcConn, char *message){
     }
 
     string srcNickname = srcConn.nickname;
+
+    std::vector<std::string> v_muted = currChann->v_muted;
     if(find(v_muted.begin(), v_muted.end(), srcNickname) != v_muted.end()){
         return;
     }
@@ -158,17 +186,60 @@ void Server::_send(Connection srcConn, char *message){
     return;
 }
 
+void Server::_changeConnChannel(Connection *currConn, char new_channel_name[]){
+
+    Channel *currChann = _search_channel(currConn->channel_name);
+    if (currChann == NULL) return;
+
+    // erases nickname from current channel's list
+    for (int i=0; i < (int)currChann->v_connections.size(); i++){
+        if (!strcmp(currChann->v_connections[i].nickname, currConn->nickname)){
+            currChann->v_connections.erase(currChann->v_connections.begin()+i);
+            break;
+        }
+    }
+
+    Channel *newChann = _search_channel(new_channel_name);
+    if (newChann == NULL){
+        newChann = (Channel*) malloc(sizeof(Channel));
+        strcpy(newChann->name, new_channel_name);
+        strcpy(newChann->admin_nickname, currConn->nickname);
+
+        newChann->v_connections.push_back((*currConn));
+        this->v_channels.push_back((*newChann));
+        printf("creates new channel!\n");
+    }
+
+    newChann->v_connections.push_back((*currConn));
+    strcpy(currConn->channel_name, new_channel_name);
+
+    return;
+}
+
 void Server::muteClient(int index){
-    this->v_muted.push_back(this->clientConnections[index].nickname);
+
+    Connection currConn = this->clientConnections[index];
+
+    Channel *currChann = _search_channel(currConn.channel_name);
+    if (currChann == NULL) return;
+
+    // if client is not already in the muted list
+    std::vector<std::string> v_muted = currChann->v_muted;
+    if(find(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname) == v_muted.end()){
+        currChann->v_muted.push_back(this->clientConnections[index].nickname);
+    }
     return;
 }
 
 void Server::unmuteClient(int index){
-    printf("Entered\n");
-    this->v_muted.erase(remove(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname));
-    cout << "printing" << endl;
-    for(auto i : v_muted){
-        cout << "elem: " << i << endl;
+    Connection currConn = this->clientConnections[index];
+
+    Channel *currChann = _search_channel(currConn.channel_name);
+    if (currChann == NULL) return;
+    
+    std::vector<std::string> v_muted = currChann->v_muted;
+    if(find(v_muted.begin(), v_muted.end(), this->clientConnections[index].nickname) != v_muted.end()){
+        currChann->v_muted.erase(v_muted.begin() + index);
     }
     return;
 }

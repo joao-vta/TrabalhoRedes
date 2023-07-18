@@ -24,3 +24,9 @@ runClient:
 
 clean:
 	rm $(CLIENT_BIN) $(SERVER_BIN) *.bin vgcore.* -f
+
+valgrind:
+	valgrind $(VFLAGS) 
+
+valgrind_client:
+	valgrind $(VFLAGS)

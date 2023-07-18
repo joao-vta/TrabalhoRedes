@@ -46,6 +46,33 @@ void cmd_unmute(Channel *currChann, char *nickname){
     return;
 }
 
+std::string cmd_whois(Channel *currChann, char *nickname){
+    printf("nickname: %s\n", nickname);
+    std::string whois_reply("User not found.");
+    for (Connection &currConn : currChann->v_connections){
+        if (strcmp(currConn.nickname, nickname) == 0){
+            if (currConn.index != DISCONNECTED){
+                whois_reply = "IP from "+ std::string(nickname) + " => " + std::string(currConn.ipv4_address) + "\n";
+                break;
+            }
+        }
+    }
+    printf("cmd_whois_reply: %s\n", whois_reply.data());
+
+    return whois_reply;
+}
+
+bool change_nickname(Connection *currConn, char *nickname){
+
+    if(strlen(nickname) > 50){
+        cout << "Nickname must be shorter than 50 characters." << endl;
+        return false;
+    }
+
+    strcpy(currConn->nickname, nickname);
+    return true;
+}
+
 void exitSignalHandler(int signum) {
     printf("\nTo exit, type '/quit' in the terminal\n");
 }
@@ -71,6 +98,49 @@ void serverClientCommunication(int index){
 
         Channel *currChann = server._search_channel(currConnection.channel_name);
 
+        // if cmd is join, user must switch channels
+        if (strncmp(message, "/join ", 6) == 0){
+            server._changeConnChannel(&currConnection, &message[6]);
+            continue;
+        }
+
+        //std::string srcNickname(currConnection.nickname);
+        if (server._isMuted(currConnection)){
+            continue;
+        }
+        
+        if (strncmp(message, "/nickname ", 10) == 0){
+
+            // if current user is admin, channel must be updated
+            bool is_admin = false;
+            if (strcmp(currChann->admin_nickname, currConnection.nickname) == 0){
+                is_admin = true;
+            }
+
+            /* TODO
+             * alterar o nome no canal apenas depois de checar se a alteração
+             * vai ser de fato realizada
+            */
+            // searches for currConn nickname in channel's connections list
+            for (int i=0; i < (int)currChann->v_connections.size(); i++){
+                if (strcmp(currChann->v_connections[i].nickname, currConnection.nickname) == 0){
+                    strcpy(currChann->v_connections[i].nickname, &message[10]);
+                }
+            }
+
+            if (change_nickname(&currConnection, &message[10]) == false){
+                continue;
+            }
+
+                
+            if (is_admin == true){
+                strcpy(currChann->admin_nickname, currConnection.nickname);
+            }
+            server.clientConnections[index] = currConnection;
+
+            continue;
+        }
+
         // '/ping' return
         if (strcmp(message, "/ping") == 0){
             server._reply((char*)"Server: pong\n", currConnection);
@@ -78,33 +148,49 @@ void serverClientCommunication(int index){
         }
 
         // if current user is admin, checks commands
+        std::string nick_str(currConnection.nickname);
         if (strcmp(currChann->admin_nickname, currConnection.nickname) == 0){
-            if (!strncmp(message, "/kick", 5)){
+
+            // adds '@' to admin's name
+            nick_str = "@"+nick_str;
+
+            if (!strncmp(message, "/kick ", 6)){
                 printf("kick\n");
-                cmd_kick(currChann, &message[6]);
-                //server.disconnectClient(index);
+
+                // admins cannot be kicked or muted
+                if (strcmp(currChann->admin_nickname, &message[6]) != 0){
+                    cmd_kick(currChann, &message[6]);
+                }
             }
-            if (!strncmp(message, "/mute", 5)){
+            if (!strncmp(message, "/mute ", 6)){
                 printf("mute\n");
-                cmd_mute(currChann, &message[6]);
+
+                // admins cannot be kicked or muted
+                if (strcmp(currChann->admin_nickname, &message[6]) != 0){
+                    cmd_mute(currChann, &message[6]);
+                }
             }
-            if (!strncmp(message, "/unmute", 7)){
+            if (!strncmp(message, "/unmute ", 8)){
                 printf("unmute\n");
-                cmd_unmute(currChann, &message[8]);
+                // admins cannot be kicked or muted
+                if (strcmp(currChann->admin_nickname, &message[8]) != 0){
+                    cmd_unmute(currChann, &message[8]);
+                }
             }
-            if (!strcmp(message, "/whois")){
+            if (!strncmp(message, "/whois ", 7)){
                 printf("whois\n");
+                std::string whois_reply = cmd_whois(currChann, &message[7]);
+                printf("whois_reply: %s\n", whois_reply.data());
+                server._reply(whois_reply.data(), currConnection);
+            
+                continue;
             }
         } 
 
-        /* TODO
-         *  Mostrar nickname personalizado */
-
         //sending message
-        std::string str(message);
-        std::string nick_str(currConnection.nickname);
-        str = nick_str+": "+str+"\n";
-        server._send(currConnection, str.data());
+        std::string str_message(message);
+        str_message = nick_str+": "+str_message+"\n";
+        server._send(currConnection, str_message.data());
     }
 }
 
